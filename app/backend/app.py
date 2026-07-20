@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 def get_connection():
     return mysql.connector.connect(
-        host="localhost",
+        host="database",
         user="cloudcart",
         password="CloudCart@123",
         database="cloudcart"
