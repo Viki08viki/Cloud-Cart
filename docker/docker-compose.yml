@@ -15,10 +15,8 @@ services:
 
 
   backend:
-    build:
-      context: ../app/backend
-      dockerfile: Dockerfile
-    
+    image: cloudcart-backend:10
+
     container_name: cloudcart-backend
 
     ports:
