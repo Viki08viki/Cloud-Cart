@@ -1,0 +1,87 @@
+pipeline {
+
+    agent any
+
+    environment {
+        IMAGE_NAME = "cloudcart-backend"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Checkout Source Code') {
+            steps {
+                git branch: 'feature/application-skeleton',
+                    credentialsId: 'github-ssh',
+                    url: 'git@github.com:Viki08viki/Cloud-Cart.git'
+            }
+        }
+
+        stage('Verify Workspace') {
+            steps {
+                sh '''
+                pwd
+                ls -la
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                docker build -t ${IMAGE_NAME}:${IMAGE_TAG} app/backend
+                '''
+            }
+        }
+
+         stage('Run Tests') {
+             steps {
+                  sh '''
+                  docker run --rm cloudcart-backend:${BUILD_NUMBER} \
+                  python -m py_compile app.py
+                  '''
+             }
+         }
+
+        stage('Deploy Application') {
+            steps {
+                sh '''
+                IMAGE_TAG=${BUILD_NUMBER} docker compose -f docker/docker-compose.yml down
+                IMAGE_TAG=${BUILD_NUMBER} docker compose -f docker/docker-compose.yml up -d
+                '''
+            }
+        } 
+
+        stage('Health Check') {
+            steps {
+                sh '''
+                sleep 10
+                curl http://localhost:5000/health
+                '''
+            }
+        }
+
+        stage('Cleanup Old Images') {
+            steps {
+                sh '''
+                docker image prune -f
+                '''
+            }
+        }
+    }
+
+    post {
+
+        success {
+            echo "CloudCart deployment completed successfully."
+        }
+
+        failure {
+            echo "CloudCart deployment failed."
+        }
+
+        always {
+            echo "Pipeline execution completed."
+        }
+    }
+}
