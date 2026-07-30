@@ -15,7 +15,7 @@ services:
 
 
   backend:
-    image: cloudcart-backend:10
+    image: cloudcart-backend:${IMAGE_TAG}
 
     container_name: cloudcart-backend
 
