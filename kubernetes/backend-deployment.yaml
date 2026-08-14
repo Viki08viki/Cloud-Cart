@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: cloudcart-backend
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: cloudcart-backend
+
+  template:
+    metadata:
+      labels:
+        app: cloudcart-backend
+
+    spec:
+      containers:
+      - name: backend
+
+        image: cloudcart-backend:16
+        imagePullPolicy: IfNotPresent
+
+        ports:
+        - containerPort: 5000
+
+        env:
+        - name: DB_HOST
+          value: cloudcart-db-service
+
+        - name: DB_PORT
+          value: "3306"
+
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: cloudcart-db-secret
+              key: DB_USER
+
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cloudcart-db-secret
+              key: DB_PASSWORD
+
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: cloudcart-db-secret
+              key: DB_NAME
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 2
+          failureThreshold: 3
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+
+          limits:
+            cpu: 500m
+            memory: 512Mi
