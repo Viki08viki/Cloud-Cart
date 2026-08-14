@@ -11,3 +11,7 @@ Thumbs.db
 # Terraform state files
 *.tfstate
 *.tfstate.*
+
+# Python generated files
+__pycache__/
+*.py[cod]
