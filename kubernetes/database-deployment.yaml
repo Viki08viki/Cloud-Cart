@@ -27,16 +27,28 @@ spec:
 
         env:
         - name: MARIADB_ROOT_PASSWORD
-          value: root123
+          valueFrom:
+            secretKeyRef:
+              name: cloudcart-db-mariadb-secret
+              key: MARIADB_ROOT_PASSWORD
 
         - name: MARIADB_DATABASE
-          value: cloudcart
+          valueFrom:
+            configMapKeyRef:
+              name: cloudcart-db-config
+              key: MARIADB_DATABASE
 
         - name: MARIADB_USER
-          value: cloudcart
+          valueFrom:
+            secretKeyRef:
+              name: cloudcart-db-mariadb-secret
+              key: MARIADB_USER
 
         - name: MARIADB_PASSWORD
-          value: CloudCart@123
+          valueFrom:
+            secretKeyRef:
+              name: cloudcart-db-mariadb-secret
+              key: MARIADB_PASSWORD
 
         volumeMounts:
 
