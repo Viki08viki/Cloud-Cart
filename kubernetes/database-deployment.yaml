@@ -7,6 +7,9 @@ metadata:
 spec:
   replicas: 1
 
+  strategy:
+    type: Recreate
+
   selector:
     matchLabels:
       app: cloudcart-db
@@ -21,6 +24,14 @@ spec:
       - name: mariadb
 
         image: mariadb:10.5
+
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
 
         ports:
         - containerPort: 3306
@@ -50,8 +61,29 @@ spec:
               name: cloudcart-db-mariadb-secret
               key: MARIADB_PASSWORD
 
-        volumeMounts:
+        readinessProbe:
+          exec:
+            command:
+              - sh
+              - -c
+              - mariadb-admin ping -h 127.0.0.1 -u"$MARIADB_USER" -p"$MARIADB_PASSWORD"
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
 
+        livenessProbe:
+          exec:
+            command:
+              - sh
+              - -c
+              - mariadb-admin ping -h 127.0.0.1 -u"$MARIADB_USER" -p"$MARIADB_PASSWORD"
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        volumeMounts:
         - name: db-storage
           mountPath: /var/lib/mysql
 
@@ -59,7 +91,6 @@ spec:
           mountPath: /docker-entrypoint-initdb.d
 
       volumes:
-
       - name: db-storage
         persistentVolumeClaim:
           claimName: cloudcart-db-pvc
@@ -67,3 +98,4 @@ spec:
       - name: db-init
         configMap:
           name: cloudcart-db-init
+
