@@ -20,7 +20,7 @@ spec:
       containers:
       - name: backend
 
-        image: cloudcart-backend:16
+        image: cloudcart-backend:17
         imagePullPolicy: IfNotPresent
 
         ports:
