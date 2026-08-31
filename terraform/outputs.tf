@@ -26,3 +26,22 @@ output "availability_zones" {
   description = "Availability Zones used by CloudCart"
   value       = slice(data.aws_availability_zones.available.names, 0, 2)
 }
+output "app_instance_id" {
+  description = "Terraform-managed CloudCart EC2 instance ID"
+  value       = aws_instance.app.id
+}
+
+output "app_public_ip" {
+  description = "Public IP of the CloudCart application server"
+  value       = aws_instance.app.public_ip
+}
+
+output "app_public_dns" {
+  description = "Public DNS name of the CloudCart application server"
+  value       = aws_instance.app.public_dns
+}
+
+output "amazon_linux_ami_id" {
+  description = "Amazon Linux 2023 AMI selected by Terraform"
+  value       = data.aws_ami.amazon_linux_2023.id
+}

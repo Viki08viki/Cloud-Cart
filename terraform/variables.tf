@@ -40,3 +40,18 @@ variable "private_subnet_cidrs" {
     "10.20.12.0/24"
   ]
 }
+variable "instance_type" {
+  description = "EC2 instance type for the CloudCart application server"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "key_name" {
+  description = "Existing EC2 key pair used for SSH access"
+  type        = string
+}
+
+variable "ssh_allowed_cidr" {
+  description = "CIDR permitted to SSH into the CloudCart application server"
+  type        = string
+}
