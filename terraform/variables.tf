@@ -55,3 +55,8 @@ variable "ssh_allowed_cidr" {
   description = "CIDR permitted to SSH into the CloudCart application server"
   type        = string
 }
+variable "ami_id" {
+  description = "Pinned Amazon Linux 2023 AMI for the CloudCart application server"
+  type        = string
+  default     = "ami-0776b6c9878ac64ea"
+}

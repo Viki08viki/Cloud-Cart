@@ -42,6 +42,6 @@ output "app_public_dns" {
 }
 
 output "amazon_linux_ami_id" {
-  description = "Amazon Linux 2023 AMI selected by Terraform"
-  value       = data.aws_ami.amazon_linux_2023.id
+  description = "Amazon Linux 2023 AMI used by CloudCart"
+  value       = var.ami_id
 }

@@ -36,7 +36,7 @@ resource "aws_vpc_security_group_egress_rule" "all" {
 }
 
 resource "aws_instance" "app" {
-  ami           = data.aws_ami.amazon_linux_2023.id
+  ami           = var.ami_id
   instance_type = var.instance_type
 
   subnet_id                   = aws_subnet.public[0].id
