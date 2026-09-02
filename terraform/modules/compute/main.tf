@@ -1,7 +1,7 @@
 resource "aws_security_group" "app" {
   name_prefix = "${var.project_name}-${var.environment}-app-"
   description = "Security group for CloudCart application server"
-  vpc_id      = aws_vpc.cloudcart.id
+  vpc_id      = var.vpc_id
 
   tags = {
     Name = "${var.project_name}-${var.environment}-app-sg"
@@ -39,7 +39,7 @@ resource "aws_instance" "app" {
   ami           = var.ami_id
   instance_type = var.instance_type
 
-  subnet_id                   = aws_subnet.public[0].id
+  subnet_id                   = var.subnet_id
   vpc_security_group_ids      = [aws_security_group.app.id]
   associate_public_ip_address = true
   key_name                    = var.key_name

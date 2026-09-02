@@ -9,17 +9,17 @@ output "aws_region" {
 }
 output "vpc_id" {
   description = "CloudCart VPC ID"
-  value       = aws_vpc.cloudcart.id
+  value       = module.network.vpc_id
 }
 
 output "public_subnet_ids" {
   description = "CloudCart public subnet IDs"
-  value       = aws_subnet.public[*].id
+  value       = module.network.public_subnet_ids
 }
 
 output "private_subnet_ids" {
   description = "CloudCart private subnet IDs"
-  value       = aws_subnet.private[*].id
+  value       = module.network.private_subnet_ids
 }
 
 output "availability_zones" {
@@ -28,19 +28,18 @@ output "availability_zones" {
 }
 output "app_instance_id" {
   description = "Terraform-managed CloudCart EC2 instance ID"
-  value       = aws_instance.app.id
+  value       = module.compute.instance_id
 }
 
 output "app_public_ip" {
   description = "Public IP of the CloudCart application server"
-  value       = aws_instance.app.public_ip
+  value       = module.compute.public_ip
 }
 
 output "app_public_dns" {
   description = "Public DNS name of the CloudCart application server"
-  value       = aws_instance.app.public_dns
+  value       = module.compute.public_dns
 }
-
 output "amazon_linux_ami_id" {
   description = "Amazon Linux 2023 AMI used by CloudCart"
   value       = var.ami_id
