@@ -13,7 +13,7 @@ pipeline {
 
         stage('Checkout Source Code') {
             steps {
-                git branch: 'feature/final-integration',
+                git branch: 'feature/devsecops',
                     credentialsId: 'github-ssh',
                     url: 'git@github.com:Viki08viki/Cloud-Cart.git'
             }
@@ -22,11 +22,67 @@ pipeline {
         stage('Verify Environment') {
             steps {
                 sh '''
-                echo "Checking Docker..."
+                echo "Docker:"
                 docker --version
 
-                echo "Checking Kubernetes..."
+                echo "Kubernetes:"
                 kubectl get nodes
+
+                echo "Trivy:"
+                trivy --version
+                '''
+            }
+        }
+
+        stage('Secret Security Gate') {
+            steps {
+                sh '''
+                trivy fs \
+                  --scanners secret \
+                  --exit-code 1 \
+                  --skip-dirs .git \
+                  --skip-dirs terraform/.terraform \
+                  .
+                '''
+            }
+        }
+
+        stage('Dependency Security Gate') {
+            steps {
+                sh '''
+                trivy fs \
+                  --scanners vuln \
+                  --severity HIGH,CRITICAL \
+                  --ignore-unfixed \
+                  --exit-code 1 \
+                  --skip-dirs .git \
+                  --skip-dirs terraform/.terraform \
+                  .
+                '''
+            }
+        }
+
+        stage('Terraform Security Audit') {
+            steps {
+                sh '''
+                echo "Terraform findings are reported for review."
+                echo "Accepted CloudCart lab findings will not block deployment."
+
+                trivy config \
+                  --severity HIGH,CRITICAL \
+                  --exit-code 0 \
+                  terraform/
+                '''
+            }
+        }
+
+        stage('Kubernetes Security Gate') {
+            steps {
+                sh '''
+                trivy config \
+                  --severity HIGH,CRITICAL \
+                  --exit-code 1 \
+                  kubernetes/backend-deployment.yaml
                 '''
             }
         }
@@ -34,7 +90,23 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                docker build -t ${IMAGE_NAME}:${IMAGE_TAG} app/backend
+                docker build \
+                  --pull \
+                  -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                  app/backend
+                '''
+            }
+        }
+
+        stage('Container Security Gate') {
+            steps {
+                sh '''
+                trivy image \
+                  --scanners vuln \
+                  --severity HIGH,CRITICAL \
+                  --ignore-unfixed \
+                  --exit-code 1 \
+                  ${IMAGE_NAME}:${IMAGE_TAG}
                 '''
             }
         }
@@ -43,7 +115,9 @@ pipeline {
             steps {
                 sh '''
                 docker run --rm ${IMAGE_NAME}:${IMAGE_TAG} \
-                python -m py_compile app.py
+                  python -m py_compile app.py
+
+                docker run --rm ${IMAGE_NAME}:${IMAGE_TAG} id
                 '''
             }
         }
@@ -51,10 +125,8 @@ pipeline {
         stage('Load Image into Minikube') {
             steps {
                 sh '''
-                echo "Loading ${IMAGE_NAME}:${IMAGE_TAG} into Minikube..."
-
                 docker save ${IMAGE_NAME}:${IMAGE_TAG} | \
-                docker exec -i minikube docker load
+                  docker exec -i minikube docker load
                 '''
             }
         }
@@ -62,13 +134,13 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                kubectl set image \
-                deployment/${DEPLOYMENT_NAME} \
-                ${CONTAINER_NAME}=${IMAGE_NAME}:${IMAGE_TAG}
+                sed "s#image: cloudcart-backend:.*#image: ${IMAGE_NAME}:${IMAGE_TAG}#" \
+                  kubernetes/backend-deployment.yaml | \
+                  kubectl apply -f -
 
                 kubectl rollout status \
-                deployment/${DEPLOYMENT_NAME} \
-                --timeout=120s
+                  deployment/${DEPLOYMENT_NAME} \
+                  --timeout=120s
                 '''
             }
         }
@@ -77,12 +149,15 @@ pipeline {
             steps {
                 sh '''
                 CURRENT_IMAGE=$(kubectl get deployment ${DEPLOYMENT_NAME} \
-                -o jsonpath='{.spec.template.spec.containers[0].image}')
+                  -o jsonpath='{.spec.template.spec.containers[0].image}')
 
                 echo "Expected image: ${IMAGE_NAME}:${IMAGE_TAG}"
                 echo "Deployed image: ${CURRENT_IMAGE}"
 
                 test "${CURRENT_IMAGE}" = "${IMAGE_NAME}:${IMAGE_TAG}"
+
+                echo "Runtime identity:"
+                kubectl exec deployment/${DEPLOYMENT_NAME} -- id
 
                 kubectl get pods
                 '''
@@ -93,7 +168,7 @@ pipeline {
             steps {
                 sh '''
                 kubectl exec deployment/${DEPLOYMENT_NAME} -- \
-                python -c "import urllib.request; print(urllib.request.urlopen('http://cloudcart-backend-service:5000/health', timeout=10).read().decode())"
+                  python -c "import urllib.request; print(urllib.request.urlopen('http://cloudcart-backend-service:5000/health', timeout=10).read().decode())"
                 '''
             }
         }
@@ -102,7 +177,7 @@ pipeline {
             steps {
                 sh '''
                 kubectl exec deployment/${DEPLOYMENT_NAME} -- \
-                python -c "import urllib.request; print(urllib.request.urlopen('http://cloudcart-backend-service:5000/products', timeout=10).read().decode())"
+                  python -c "import urllib.request; print(urllib.request.urlopen('http://cloudcart-backend-service:5000/products', timeout=10).read().decode())"
                 '''
             }
         }
@@ -111,11 +186,11 @@ pipeline {
     post {
 
         success {
-            echo "CloudCart Kubernetes deployment completed successfully."
+            echo "CloudCart DevSecOps pipeline completed successfully."
         }
 
         failure {
-            echo "CloudCart Kubernetes deployment failed."
+            echo "CloudCart pipeline failed. Deployment may have been blocked by a security or validation gate."
 
             sh '''
             kubectl get pods || true
@@ -124,7 +199,7 @@ pipeline {
         }
 
         always {
-            echo "Pipeline execution completed."
+            echo "CloudCart pipeline execution completed."
         }
     }
 }

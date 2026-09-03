@@ -17,11 +17,27 @@ spec:
         app: cloudcart-backend
 
     spec:
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+
       containers:
       - name: backend
 
-        image: cloudcart-backend:17
+        image: cloudcart-backend:16
         imagePullPolicy: IfNotPresent
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
 
         ports:
         - containerPort: 5000
@@ -77,3 +93,11 @@ spec:
           limits:
             cpu: 500m
             memory: 512Mi
+
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+
+      volumes:
+      - name: tmp
+        emptyDir: {}
