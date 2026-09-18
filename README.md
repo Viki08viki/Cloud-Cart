@@ -569,3 +569,6 @@ Production Readiness Review
 ```
 
 Code-quality analysis using SonarQube/SonarCloud is being treated as an optional extension and does not block completion of the core project.
+
+**CI/CD Trigger:** Pushes to the main branch automatically trigger Jenkins through a GitHub webhook.
+
