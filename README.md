@@ -350,7 +350,23 @@ kubectl rollout status deployment/cloudcart-backend
 After rollback, both `/health` and `/products` were verified successfully.
 
 The latest application release was then restored.
+---
+## Amazon EKS Deployment
+Deployed CloudCart to Amazon EKS using cluster `cloudcart-eks-lab`
+(Kubernetes 1.36, `eu-north-1`).
 
+The backend and MariaDB database run as separate Kubernetes Deployments.
+The backend container image is stored in Amazon ECR, and the application is
+exposed publicly using a Kubernetes `LoadBalancer` Service.
+
+- `kubectl get nodes,pods,svc -o wide` — [screenshot](docs/screenshots/eks/eks-kubectl-output.png)
+- Live health check: `GET /health` → `{"status":"UP"}` — [screenshot](docs/screenshots/eks/eks-health-endpoint.png)
+- Live product listing: `GET /products` → returns seeded product data — [screenshot](docs/screenshots/eks/eks-products-endpoint.png)
+- Amazon EKS console — cluster status `Active` — [screenshot](docs/screenshots/eks/eks-cluster-active.png)
+
+> **Note:** MariaDB used temporary `emptyDir` storage for this short-lived EKS
+> hands-on deployment. A production implementation would use persistent storage
+> such as Amazon EBS with the EBS CSI driver.
 ---
 
 ## Monitoring
