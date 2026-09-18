@@ -359,10 +359,13 @@ The backend and MariaDB database run as separate Kubernetes Deployments.
 The backend container image is stored in Amazon ECR, and the application is
 exposed publicly using a Kubernetes `LoadBalancer` Service.
 
-- `kubectl get nodes,pods,svc -o wide` — [screenshot](docs/screenshots/eks/eks-kubectl-output.png)
-- Live health check: `GET /health` → `{"status":"UP"}` — [screenshot](docs/screenshots/eks/eks-health-endpoint.png)
-- Live product listing: `GET /products` → returns seeded product data — [screenshot](docs/screenshots/eks/eks-products-endpoint.png)
-- Amazon EKS console — cluster status `Active` — [screenshot](docs/screenshots/eks/eks-cluster-active.png)
+![EKS kubectl output](docs/screenshots/eks/eks-kubectl-output.png)
+
+![CloudCart health endpoint](docs/screenshots/eks/eks-health-endpoint.png)
+
+![CloudCart products endpoint](docs/screenshots/eks/eks-products-endpoint.png)
+
+![Amazon EKS cluster active](docs/screenshots/eks/eks-cluster-active.png)
 
 > **Note:** MariaDB used temporary `emptyDir` storage for this short-lived EKS
 > hands-on deployment. A production implementation would use persistent storage
