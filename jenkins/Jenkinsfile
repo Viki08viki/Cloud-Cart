@@ -9,11 +9,15 @@ pipeline {
         CONTAINER_NAME  = "backend"
     }
 
+    triggers {
+        githubPush()
+    }
+
     stages {
 
         stage('Checkout Source Code') {
             steps {
-                git branch: 'feature/devsecops',
+                git branch: 'main',
                     credentialsId: 'github-ssh',
                     url: 'git@github.com:Viki08viki/Cloud-Cart.git'
             }
