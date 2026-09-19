@@ -371,7 +371,44 @@ exposed publicly using a Kubernetes `LoadBalancer` Service.
 > hands-on deployment. A production implementation would use persistent storage
 > such as Amazon EBS with the EBS CSI driver.
 ---
+## Amazon EKS Deployment
 
+Deployed CloudCart to Amazon EKS using cluster `cloudcart-eks-lab`
+(Kubernetes 1.36, `eu-north-1`).
+
+The backend and MariaDB database run as separate Kubernetes Deployments.
+The backend container image is stored in Amazon ECR, and the application is
+exposed publicly using a Kubernetes `LoadBalancer` Service.
+
+### EKS Cluster and Workloads
+
+`kubectl get nodes,pods,svc -o wide`
+
+![EKS kubectl output](docs/screenshots/eks/eks-kubectl-output.png)
+
+### Health Check
+
+`GET /health` → `{"status":"UP"}`
+
+![CloudCart health endpoint](docs/screenshots/eks/eks-health-endpoint.png)
+
+### Product Listing
+
+`GET /products` → returns seeded product data
+
+![CloudCart products endpoint](docs/screenshots/eks/eks-products-endpoint.png)
+
+### Amazon EKS Cluster
+
+Cluster status: `Active`
+
+![Amazon EKS cluster active](docs/screenshots/eks/eks-cluster-active.png)
+
+> **Note:** MariaDB used temporary `emptyDir` storage for this short-lived EKS
+> hands-on deployment. A production implementation would use persistent storage
+> such as Amazon EBS with the EBS CSI driver.
+
+---
 ## Monitoring
 
 CloudCart includes Kubernetes monitoring using:
